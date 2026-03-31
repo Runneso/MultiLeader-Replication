@@ -80,6 +80,7 @@ func (node *Node) SelfInfo() protocol.NodeInfo {
 		ID:       node.id,
 		Hostname: node.hostname,
 		Port:     node.port,
+		Role:     node.peerManager.GetRole(),
 	}
 }
 

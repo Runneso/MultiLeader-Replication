@@ -23,12 +23,6 @@ func NewDeduplication() *Deduplication {
 	}
 }
 
-func (dedup *Deduplication) Add(uuid uuid.UUID) {
-	dedup.mu.Lock()
-	defer dedup.mu.Unlock()
-	dedup.store[uuid] = time.Now()
-}
-
 func (dedup *Deduplication) AddIfAbsent(id uuid.UUID) bool {
 	dedup.mu.Lock()
 	defer dedup.mu.Unlock()
@@ -39,19 +33,6 @@ func (dedup *Deduplication) AddIfAbsent(id uuid.UUID) bool {
 
 	dedup.store[id] = time.Now()
 	return true
-}
-
-func (dedup *Deduplication) Remove(uuid uuid.UUID) {
-	dedup.mu.Lock()
-	defer dedup.mu.Unlock()
-	delete(dedup.store, uuid)
-}
-
-func (dedup *Deduplication) Exist(uuid uuid.UUID) bool {
-	dedup.mu.RLock()
-	defer dedup.mu.RUnlock()
-	_, exists := dedup.store[uuid]
-	return exists
 }
 
 func (dedup *Deduplication) StartVacuum() {

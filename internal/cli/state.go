@@ -81,6 +81,17 @@ func (state *State) SortedNodeIDs() []string {
 	return indexes
 }
 
+func (state *State) AsClusterUpdate() protocol.ClusterUpdateRequest {
+	return protocol.NewClusterUpdateRequest(
+		uuid.New(),
+		state.nodes,
+		state.buildNextMasters(),
+		state.buildFollowers(),
+		state.delayMinMs,
+		state.delayMaxMs,
+	)
+}
+
 func (state *State) leaders() []protocol.NodeInfo {
 	result := make([]protocol.NodeInfo, 0)
 	for _, id := range state.SortedNodeIDs() {
@@ -179,15 +190,4 @@ func (state *State) buildFollowers() map[string][]protocol.NodeInfo {
 	}
 
 	return result
-}
-
-func (state *State) AsClusterUpdate() protocol.ClusterUpdateRequest {
-	return protocol.NewClusterUpdateRequest(
-		uuid.New(),
-		state.nodes,
-		state.buildNextMasters(),
-		state.buildFollowers(),
-		state.delayMinMs,
-		state.delayMaxMs,
-	)
 }

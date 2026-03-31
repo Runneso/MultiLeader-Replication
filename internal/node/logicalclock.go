@@ -28,9 +28,3 @@ func (clock *LogicalClock) Update(remote int) {
 	}
 	clock.lamport++
 }
-
-func (clock *LogicalClock) Get() int {
-	clock.mu.RLock()
-	defer clock.mu.RUnlock()
-	return clock.lamport
-}
