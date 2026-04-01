@@ -1,0 +1,3 @@
+replicationMode,rf,k,threads,putRatio,totalOps,throughputOpsSec,avgMs,p50Ms,p75Ms,p95Ms,p99Ms
+sync,3,-1,16,0.8,200000,8195.818,2704.357,2635.681,4267.001,5498.454,5733.569
+async,1,-1,16,0.8,200000,27463.966,848.629,843.321,1184.894,1465.229,1522.232

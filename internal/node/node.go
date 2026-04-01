@@ -41,6 +41,7 @@ func NewNode(id, hostname string, port int) *Node {
 		protocol.TypeClientGetRequest:     node.handlerClientGetRequest,
 		protocol.TypeClientPutRequest:     node.handlerClientPutRequest,
 		protocol.TypeClientDumpRequest:    node.handlerClientDumpRequest,
+		protocol.TypeReplicationAck:       node.handlerReplicationAck,
 		protocol.TypeReplicationPut:       node.handlerReplicationPut,
 		protocol.TypeClusterUpdateRequest: node.handlerClusterUpdateRequest,
 	}
@@ -182,10 +183,13 @@ func (node *Node) handlerClientPutRequest(data []byte, writer *bufio.Writer) (uu
 		Lamport: node.peerManager.clock.Tick(),
 		NodeId:  node.id,
 	}
+	
+	startUUID := uuid.New()
 
 	node.storage.Put(request.Key, request.Value, version)
+	node.dedup.AddIfAbsent(startUUID)
 
-	err := node.peerManager.ReleaseMasters(request.Key, request.Value, version, uuid.New())
+	err := node.peerManager.ReleaseMasters(request.Key, request.Value, version, startUUID)
 	if err != nil {
 		return request.RequestUUID, fmt.Errorf("masters release request: %w", err)
 	}
@@ -231,6 +235,19 @@ func (node *Node) handlerClientDumpRequest(data []byte, writer *bufio.Writer) (u
 	}
 
 	return request.RequestUUID, nil
+}
+
+func (node *Node) handlerReplicationAck(data []byte, _ *bufio.Writer) (uuid.UUID, error) {
+	var request protocol.ReplicationAck
+	if err := json.Unmarshal(data, &request); err != nil {
+		return uuid.Nil, fmt.Errorf("unmarshal replication ack: %w", protocol.NewBadRequestError("bad json"))
+	}
+
+	slog.Info("node handle request", "type", request.Type, "operation_id", request.OperationID.String(), "from", request.Node.ID)
+
+	node.peerManager.onAck(&request)
+
+	return request.OperationID, nil
 }
 
 func (node *Node) handlerReplicationPut(data []byte, writer *bufio.Writer) (uuid.UUID, error) {
